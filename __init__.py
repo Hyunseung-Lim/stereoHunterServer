@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__) # creates the Flask instance, __name__ is the name of the current Python module
-    CORS(app)
+    CORS(app, origin =['*'], methods=['GET', 'POST'])
     
     app.config['SECRET_KEY'] = 'hyunseung' # it is used by Flask and extensions to keep data safe
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db' #it is the path where the SQLite database file will be saved
