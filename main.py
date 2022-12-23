@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint, current_app, redirect, url_for, request, flash, jsonify
+from flask import Blueprint, current_app, redirect, url_for, request, flash, jsonify, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import cross_origin
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, unset_jwt_cookies, jwt_required, JWTManager
@@ -68,13 +68,8 @@ def signup():
     existUser = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
     if existUser: # if a user is found, we want to redirect back to signup page so user can try again
         # flash('Email address already exists')
-        return {"":""}
-    # if photo:
-    #     # uniq_filename = make_unique(photo.filename)
-    #     # photo_path = join(current_app.config['UPLOAD_FOLDER'],"photo",uniq_filename)
-    #     # photo.save(photo_path)       
-    #     pass
-    # else:
+        return  Response({"":""}, mimetype='text/xml')
+
     new_user = User(
         email = email,
         name = name,
@@ -89,7 +84,7 @@ def signup():
     # )
     # db.session.add(new_activity)
     db.session.commit()
-    return {"msg": "make account successful"}
+    return Response({"msg": "make account successful"}, mimetype='text/xml')
     
 
 @main.after_request
@@ -105,10 +100,10 @@ def refresh_expiring_jwts(response):
             if type(data) is dict:
                 data["access_token"] = access_token 
                 response.data = json.dumps(data)
-        return response
+        return Response(response, mimetype='text/xml')
     except (RuntimeError, KeyError):
         # Case where there is not a valid JWT. Just return the original respone
-        return response    
+        return Response(response, mimetype='text/xml')
 
 @main.route("/token", methods=['POST'])
 @cross_origin()
@@ -134,14 +129,14 @@ def create_token():
 
     access_token = create_access_token(identity=email)
     response = {"access_token":access_token}
-    return response
+    return Response(response, mimetype='text/xml')
 
 @main.route("/logout", methods=["POST"])
 @cross_origin()
 def logout():
     response = jsonify({"msg": "logout successful"})
     unset_jwt_cookies(response)
-    return response
+    return Response(response, mimetype='text/xml')
 
 @main.route("/profile")
 @jwt_required()
@@ -154,7 +149,8 @@ def profile():
     for log in logs:
         userLog = {"id": log.id, "input": log.input, "output": log.output, "isStereo": log.isStereo, "initalTarget": log.initalTarget, "targets": log.targets, "relation": log.relation, "familiar": log.familiar, "degree": log.degree, "context": log.context, "isWordIssue": log.isWordIssue, "words": log.words, "ambiguous": log.ambiguous}
         logData.insert(0, userLog)
-    return {"logData": logData, "name": name}
+    response = {"logData": logData, "name": name}
+    return Response(response, mimetype='text/xml')
 
 @main.route("/getInput", methods=["POST"])
 @cross_origin()
@@ -209,7 +205,9 @@ def getinput():
     for log in logs:
         userLog = {"id": log.id, "input": log.input, "output": log.output, "isStereo": log.isStereo, "initalTarget": log.initalTarget, "targets": log.targets, "relation": log.relation, "familiar": log.familiar, "degree": log.degree, "context": log.context, "isWordIssue": log.isWordIssue, "words": log.words, "ambiguous": log.ambiguous}
         logData.insert(0, userLog)
-    return {"logData": logData, "result": response_text}
+    
+    response = {"logData": logData, "result": response_text}
+    return Response(response, mimetype='text/xml')
 
 
 @main.route("/setStereo", methods=["POST"])
@@ -247,7 +245,8 @@ def setStereo():
     for log in logs:
         userLog = {"id": log.id, "input": log.input, "output": log.output, "isStereo": log.isStereo, "initalTarget": log.initalTarget, "targets": log.targets, "relation": log.relation, "familiar": log.familiar, "degree": log.degree, "context": log.context, "isWordIssue": log.isWordIssue, "words": log.words, "ambiguous": log.ambiguous}
         logData.insert(0, userLog)
-    return {"logData": logData}
+    response = {"logData": logData}
+    return Response(response, mimetype='text/xml')
 
 
 @main.route("/evaluation", methods=["POST"])
@@ -288,7 +287,8 @@ def evaluation():
     for log in logs:
         userLog = {"id": log.id, "input": log.input, "output": log.output, "isStereo": log.isStereo, "initalTarget": log.initalTarget, "targets": log.targets, "relation": log.relation, "familiar": log.familiar, "degree": log.degree, "context": log.context, "isWordIssue": log.isWordIssue, "words": log.words, "ambiguous": log.ambiguous}
         logData.insert(0, userLog)
-    return {"logData": logData}
+    response = {"logData": logData}
+    return Response(response, mimetype='text/xml')
 
 @main.route("/setAmbiguous", methods=["POST"])
 @cross_origin()
@@ -316,7 +316,8 @@ def setAmbiguous():
     for log in logs:
         userLog = {"id": log.id, "input": log.input, "output": log.output, "isStereo": log.isStereo, "initalTarget": log.initalTarget, "targets": log.targets, "relation": log.relation, "familiar": log.familiar, "degree": log.degree, "context": log.context, "isWordIssue": log.isWordIssue, "words": log.words, "ambiguous": log.ambiguous}
         logData.insert(0, userLog)
-    return {"logData": logData}
+    response = {"logData": logData}
+    return Response(response, mimetype='text/xml')
 
 @main.route("/manage")
 def manage():
@@ -335,12 +336,15 @@ def manage():
     for activity in activities:
         unitActivityData = {"id": activity.id, "user_id": activity.user_id, "time": activity.time, "log_id": activity.log_id, "state": activity.state, "note": activity.note}
         activityData.append(unitActivityData)
-    return {"logData": totalLogData, "activityData": activityData}
+    response = {"logData": totalLogData, "activityData": activityData}
+    return Response(response, mimetype='text/xml')
 
 
-@main.route("/test", methods=["POST"])
+@main.route("/dbtest", methods=["POST"])
 def test():
-    return {"text": "good"}
+    users = User.query.first()
+    response = {"text": "good"}
+    return Response(response, mimetype='text/xml')
 
 app = create_app()
 if __name__ == '__main__':
