@@ -342,8 +342,8 @@ def manage():
 
 @main.route("/dbtest", methods=["POST"])
 def test():
-    users = User.query.first()
-    response = {"text": "good"}
+    user = User.query.first()
+    response = {"text": user.id}
     return response
 
 app = create_app()
